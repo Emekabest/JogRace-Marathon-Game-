@@ -30,9 +30,9 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Camera")
 	class UCameraComponent* Camera;
 
-	bool ActivateMoveLeftRight;
-
 	
+	int SwitchLaneLimit;
+	bool DemoActivateMoveLeftRight;
 
 protected:
 	// Called when the game starts or when spawned
@@ -57,7 +57,7 @@ public:
 
 	void SetupRotation(float InputValue, float RotationRate);
 
-	void MoveNextLaneRight();
+	void MoveToNextLane(float Distance);
 
 
 };

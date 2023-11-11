@@ -19,16 +19,14 @@ AMainActor::AMainActor()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-
 	/*Setting up the Spring Arm*/
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(GetRootComponent());
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->CameraLagSpeed = 2.0f;
+	
 	////////////////
-
-	spring = SpringArm;
 
 	/*Setting up the Camera*/
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -37,17 +35,13 @@ AMainActor::AMainActor()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	////////////////
 
-	/*Setting up the BoxTrigger Component*/
-	
-	//MyTrigger = Cast<AMyTriggerBox>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyTriggerBox::StaticClass()));
-	
-
-	///////////
-
 	//Defining the Right and Left rotation rate of the Actor
 	RotationRightRate = 36.0f;
 	RotationLeftRate = 36.0f;
 	//////////////
+	
+	SwitchLaneLimit = 2;
+	DemoActivateMoveLeftRight = false;
 	
 
 }
@@ -64,8 +58,6 @@ void AMainActor::BeginPlay()
 			MyTriggerBoxes.Add(*ActorItr);
 			
 		}
-
-
 }
 
 // Called every frame
@@ -93,35 +85,36 @@ void AMainActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 }
 
-
 void AMainActor::TurnRight() {
 
 	SetupRotation(1.0f, RotationRightRate);
 
-	FVector ActorCurrentLocation = GetActorLocation();
+	/*This section deals with moving the character from one lane/track to the other */
+	if (!DemoActivateMoveLeftRight && SwitchLaneLimit < 3) {
+		MoveToNextLane(700.0f);
+		SwitchLaneLimit++;
+		UE_LOG(LogTemp, Warning, TEXT("%i"), SwitchLaneLimit)
 
-	  ActorCurrentLocation.Y += 800.f;
+	}
 
-	  SetActorLocation(ActorCurrentLocation);
-
-	UE_LOG(LogTemp, Warning, TEXT("%f"), ActorCurrentLocation.Y)
-	
 }
 
 void AMainActor::TurnLeft() {
 
 	SetupRotation(-1.0f, RotationLeftRate);
 
-	FVector ActorCurrentLocation = GetActorLocation();
+	/*This section deals with moving the character from one lane/track to the other */
+	if (!DemoActivateMoveLeftRight && SwitchLaneLimit > 1) {
+		MoveToNextLane(-700.0f);
+		SwitchLaneLimit--;
+		UE_LOG(LogTemp, Warning, TEXT("%i"), SwitchLaneLimit)
 
-	ActorCurrentLocation.Y -= 800.f;
+	}
 
-	SetActorLocation(ActorCurrentLocation);
-
-	UE_LOG(LogTemp, Warning, TEXT("%f"), ActorCurrentLocation.Y)
 }
 
-/*This Function is responsible for setting up the left and right rotaion of the character. */
+
+/*This Function sets up the left and right rotaion of the character. */
 /*And also it makes sure the rotation only happens when the characters enters the trigger box...*/
 void AMainActor::SetupRotation(float InputValue, float RotationRate) {
 
@@ -129,24 +122,28 @@ void AMainActor::SetupRotation(float InputValue, float RotationRate) {
 	{
 		if (MainTrigger)
 		{
-			// Access properties and functions of the trigger box
-			bool DemoActivateMoveLeftRight = MainTrigger->bActivateMoveLeftRight;
+			/* Access properties and functions of the trigger box*/
+			 DemoActivateMoveLeftRight = MainTrigger->bActivateMoveLeftRight;
 			if (DemoActivateMoveLeftRight)
 			{
 				AddControllerYawInput(InputValue * RotationRate);// This determines how the character rotate at the left and right hand side.
 				UE_LOG(LogTemp, Warning, TEXT("Rotating..."))
 
 			}
-			else {
-
-				UE_LOG(LogTemp, Warning, TEXT("Not Yet"))
-
-			}
 
 		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("TriggerBox Not Active"))
-		}
+		
 	}
 
 }
+
+
+/*This function moves the character to the next lane or track of the road*/
+void AMainActor::MoveToNextLane(float Distance) {
+	FVector GetActorLeftVector = GetActorRightVector();//Getting the Right Relative Actor Vector 
+	FVector ActorCurrentLocation = GetActorLocation();//Getting the Actor current location
+	FVector NewRelativeLoation = ActorCurrentLocation + GetActorLeftVector * Distance;
+	SetActorRelativeLocation(NewRelativeLoation);//Setting Actor location based on actor local axis Direction....
+
+}
+

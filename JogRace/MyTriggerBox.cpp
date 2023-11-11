@@ -18,8 +18,10 @@ AMyTriggerBox::AMyTriggerBox(){
 
 	TriggerBox->SetCollisionProfileName(TEXT("TriggerBox"));
 	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMyTriggerBox::OnOverlapBegin);
-	//TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AMyTriggerBox::OnOverlapEnd;
-	// Bind the OnOverlapBegin function to the OnActorBeginOverlap event
+	// Bind the OnOverlapBegin function to the OnComponentBeginOverlap event
+
+	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AMyTriggerBox::OnOverlapEnd);
+	// Bind the OnOverlapEnd function to the OnComponentEndOverlap event
 	
 }
 
@@ -38,7 +40,8 @@ void AMyTriggerBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		{
 
 			bActivateMoveLeftRight = true;
-			UE_LOG(LogTemp, Warning, TEXT("T-Class: %d"), bActivateMoveLeftRight);
+			
+			UE_LOG(LogTemp, Warning, TEXT("Begin trigger"));
 
 		}
 		else {
@@ -48,4 +51,23 @@ void AMyTriggerBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		}
 			
 	}
+}
+
+void AMyTriggerBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+
+	if (OtherActor && OtherActor->IsA(AMainActor::StaticClass()))
+	{
+		AMainActor* YourCharacter = Cast<AMainActor>(OtherActor);
+		if (YourCharacter)
+		{
+			bActivateMoveLeftRight = false;
+			UE_LOG(LogTemp, Warning, TEXT("Is out!!!"));
+
+		}
+		
+
+	}
+	
+
+		
 }

@@ -27,11 +27,11 @@ public:
 	UBoxComponent* TriggerBox;
 
 	/*Functions................*/
-	`
+	
 	/*Only activate when the actor enters into the trigger object.*/
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
-
-	void onOverlapEnd();
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
