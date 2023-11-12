@@ -26,6 +26,9 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "TriggerBox")
 	UBoxComponent* TriggerBox;
 
+	int TriggerBeginValueX;
+	int TriggerBeginValueY;
+
 	/*Functions................*/
 	
 	/*Only activate when the actor enters into the trigger object.*/

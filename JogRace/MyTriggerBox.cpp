@@ -40,9 +40,16 @@ void AMyTriggerBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		{
 
 			bActivateMoveLeftRight = true;
-			
-			UE_LOG(LogTemp, Warning, TEXT("Begin trigger"));
 
+			AMainActor* MainActorRef = Cast<AMainActor>(OtherActor);
+
+			FVector GetNewLocationVector = MainActorRef->GetActorLocation() + MainActorRef->GetActorForwardVector() * MainActorRef->DeltaRef;
+
+			TriggerBeginValueX = FMath::RoundToInt(GetNewLocationVector.X);
+			TriggerBeginValueY = FMath::RoundToInt(GetNewLocationVector.Y);
+
+			//UE_LOG(LogTemp, Warning, TEXT("X:%i, Y:%i"),TriggerBeginValueX, TriggerBeginValueY);
+			UE_LOG(LogTemp, Warning, TEXT("Begin trigger"));
 		}
 		else {
 			

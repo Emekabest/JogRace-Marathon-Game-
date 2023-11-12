@@ -42,8 +42,7 @@ AMainActor::AMainActor()
 	
 	SwitchLaneLimit = 2;
 	DemoActivateMoveLeftRight = false;
-	
-
+	NewLocationVector = FVector(0.0f);
 }
 
 // Called when the game starts or when spawned
@@ -72,7 +71,12 @@ void AMainActor::Tick(float DeltaTime)
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	AddMovementInput(Direction);
 	//////////////
-	
+
+	DeltaRef = DeltaTime;
+
+	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f"), NewLocationVector.X, NewLocationVector.Y)
+
+	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f"), GetActorForwardVector().X, GetActorForwardVector().Y)
 }
 
 // Called to bind functionality to input
@@ -93,7 +97,7 @@ void AMainActor::TurnRight() {
 	if (!DemoActivateMoveLeftRight && SwitchLaneLimit < 3) {
 		MoveToNextLane(700.0f);
 		SwitchLaneLimit++;
-		UE_LOG(LogTemp, Warning, TEXT("%i"), SwitchLaneLimit)
+		
 
 	}
 
@@ -107,7 +111,7 @@ void AMainActor::TurnLeft() {
 	if (!DemoActivateMoveLeftRight && SwitchLaneLimit > 1) {
 		MoveToNextLane(-700.0f);
 		SwitchLaneLimit--;
-		UE_LOG(LogTemp, Warning, TEXT("%i"), SwitchLaneLimit)
+		//UE_LOG(LogTemp, Warning, TEXT("%i"), SwitchLaneLimit)
 
 	}
 
@@ -126,9 +130,24 @@ void AMainActor::SetupRotation(float InputValue, float RotationRate) {
 			 DemoActivateMoveLeftRight = MainTrigger->bActivateMoveLeftRight;
 			if (DemoActivateMoveLeftRight)
 			{
+
+				FVector ActorFowardVector = GetActorForwardVector();//Gets the actor foward vector/direction
+
+				/* Gets the actor location when the actor rotates to another direction at this function call */
+				FVector GetNewLocationVector = GetActorLocation() + ActorFowardVector * DeltaRef;
+
+				/*Gets the actor location from 'TriggerBox class' when the character enters the box*/
+				int TriggerBeginValueX = MainTrigger->TriggerBeginValueX;
+				int TriggerBeginValueY = MainTrigger->TriggerBeginValueY;
+
+				
+				/*This functions are used to determine the location area of the characters before they rotate to another direction*/
+				DetermineAreaOfActor_BeforeRotate(TriggerBeginValueX, GetNewLocationVector.X, ActorFowardVector.X, 'X');
+				DetermineAreaOfActor_BeforeRotate(TriggerBeginValueY, GetNewLocationVector.Y, ActorFowardVector.Y, 'Y');
+				
+
 				AddControllerYawInput(InputValue * RotationRate);// This determines how the character rotate at the left and right hand side.
 				UE_LOG(LogTemp, Warning, TEXT("Rotating..."))
-
 			}
 
 		}
@@ -140,10 +159,43 @@ void AMainActor::SetupRotation(float InputValue, float RotationRate) {
 
 /*This function moves the character to the next lane or track of the road*/
 void AMainActor::MoveToNextLane(float Distance) {
-	FVector GetActorLeftVector = GetActorRightVector();//Getting the Right Relative Actor Vector 
+	FVector ActorRightVector = GetActorRightVector();//Getting the right relative actor vector/direction
 	FVector ActorCurrentLocation = GetActorLocation();//Getting the Actor current location
-	FVector NewRelativeLoation = ActorCurrentLocation + GetActorLeftVector * Distance;
+	FVector NewRelativeLoation = ActorCurrentLocation + ActorRightVector * Distance;
 	SetActorRelativeLocation(NewRelativeLoation);//Setting Actor location based on actor local axis Direction....
 
 }
 
+
+
+void AMainActor::DetermineAreaOfActor_BeforeRotate(int TriggerBeginValue_XY, float GetNewLocationVector_XY, float ActorFowardVector_XY, char XY) {
+
+
+	int FowardVector_XY = FMath::RoundToInt(ActorFowardVector_XY);//Rounded the foward vector, from float to integer
+
+	UE_LOG(LogTemp, Warning, TEXT("%c : %i"), XY, FowardVector_XY)
+
+	if (FowardVector_XY) {
+
+		int FirstLaneAreaLimit_BeforeTurn = TriggerBeginValue_XY + 830;//This is the Distance limit of the first lane area after the triggerBox
+		int SecondLaneAreaLimit_BeforeTurn = FirstLaneAreaLimit_BeforeTurn + 830; //This is the Distance limit of the second lane area after the first lane area
+
+		//int ThirdLaneAreaLimit_BeforeTurn = SecondLaneAreaLimit_BeforeTurn + 830;
+
+		if (GetNewLocationVector_XY > SecondLaneAreaLimit_BeforeTurn) {//Checking if the actors current location is greater than the SecondLaneArea limit
+
+			UE_LOG(LogTemp, Warning, TEXT("Switch to 1st Lane after rotating"))
+		}
+		else if ((GetNewLocationVector_XY < SecondLaneAreaLimit_BeforeTurn) && (GetNewLocationVector_XY > FirstLaneAreaLimit_BeforeTurn)) {
+
+			UE_LOG(LogTemp, Warning, TEXT("Switch to middle Lane after rotating"))
+
+		}
+		else {
+
+			UE_LOG(LogTemp, Warning, TEXT("Switch to 3rd Lane after rotating"))
+		}
+
+	}
+
+}
